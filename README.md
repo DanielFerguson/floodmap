@@ -16,11 +16,11 @@ This data could be used in a variety of ways; like to help...
 
 Users are able too...
 
+- [x] quickly navigate to the users location
 - [ ] view a map of flooded roads and points,
 - [ ] submit a flooded or hazardoud road with an optional image,
 - [ ] submit a flooded or hazardoud section of road with an optional image,
 - [ ] submit a flooded or hazardoud point on the map with an optional image, and
-- [ ] quickly navigate to a location using a search field.
 
 ## Technology
 
