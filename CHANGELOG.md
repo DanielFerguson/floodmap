@@ -10,5 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initialised the project using vite, react and typescript.
 - Created a basic readme.
-- Added react-leaflet mapping functionality.
+- Added mapbox mapping functionality.
 - Added tailwindcss.
+- Added serverless framework api.

@@ -12,6 +12,16 @@ This data could be used in a variety of ways; like to help...
 - government and councils to identify people cut off from necessary infrastructure, and
 - much more...
 
+## Features
+
+Users are able too...
+
+- [ ] view a map of flooded roads and points,
+- [ ] submit a flooded or hazardoud road with an optional image,
+- [ ] submit a flooded or hazardoud section of road with an optional image,
+- [ ] submit a flooded or hazardoud point on the map with an optional image, and
+- [ ] quickly navigate to a location using a search field.
+
 ## Technology
 
 - Frontend: ViteJS w/ React & TypeScript
