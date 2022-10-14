@@ -4,34 +4,18 @@ import { PencilIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outlin
 import useSWR from 'swr'
 import toast, { Toaster } from 'react-hot-toast';
 import type { GeoJSON } from 'geojson';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { MapMouseEvent } from 'mapbox-gl';
 import * as dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { useAuth0 } from "@auth0/auth0-react";
 
 dayjs.extend(relativeTime);
-
-interface HazardApiResponse {
-  geojson: {
-    features: GeoJSON[],
-    type: "FeatureCollection"
-  }
-}
 
 const hazardOptions = [
   "Flooded Road",
   "Tree Down",
   "Other",
 ];
-
-const layerStyle = {
-  id: 'point',
-  type: 'symbol',
-  source: 'pin',
-  layout: {
-    'icon-image': 'flood-pin',
-    'icon-size': 0.75
-  },
-};
 
 const fetcher = (url: string) => fetch(`http://localhost:3000${url}`).then(res => res.json());
 
@@ -42,13 +26,42 @@ const SaveHazard = (lat: number, lng: number, hazardType: string): Promise<Respo
   })
 }
 
+const AuthButton = () => {
+  const { loginWithRedirect, logout, isAuthenticated } = useAuth0();
+
+  if (isAuthenticated) {
+    return (
+      <button
+        type="button"
+        onClick={() => logout({ returnTo: window.location.origin })}
+        className="inline-flex items-center rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      >
+        <UserCircleIcon className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
+        Logout
+      </button>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => loginWithRedirect()}
+      className="inline-flex items-center rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+    >
+      <UserCircleIcon className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
+      Login
+    </button>
+  )
+}
+
 function App() {
   const [drawPoint, setDrawPoint] = useState<boolean>(false);
   const [lng, setLng] = useState<number>(143.8503);
   const [lat, setLat] = useState<number>(-37.5622);
   const [hazardType, selectHazardType] = useState<string>(hazardOptions[0]);
+  const { user, isAuthenticated } = useAuth0();
 
-  const { data } = useSWR<HazardApiResponse>('/api/hazards', fetcher);
+  const { data } = useSWR('/api/hazards', fetcher);
 
   const updateMapCenterCoordinates = (event: ViewStateChangeEvent): void => {
     setLat(event.viewState.latitude);
@@ -95,11 +108,15 @@ function App() {
     map.on('mouseenter', 'point', (e) => {
       map.getCanvas().style.cursor = 'pointer';
 
-      if (e === null || e.features === undefined) return;
+      if (e === undefined || e.features === undefined) return;
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       const coordinates = e.features[0].geometry.coordinates.slice();
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       const createdAt = e.features[0].properties.createdAt;
-      const description = `<p>Created ${dayjs(createdAt).fromNow()}.</p>`
 
       // Ensure that if the map is zoomed out such that multiple
       // copies of the feature are visible, the popup appears
@@ -110,7 +127,10 @@ function App() {
 
       // Populate the popup and set its coordinates
       // based on the feature found.
-      popup.setLngLat(coordinates).setHTML(description).addTo(map);
+      popup
+        .setLngLat(coordinates)
+        .setHTML(`<p>Created ${dayjs(createdAt).fromNow()}.</p>`)
+        .addTo(map);
     })
 
     map.on('mouseleave', 'point', () => {
@@ -142,6 +162,8 @@ function App() {
             <h1 className='font-permanent'>Flood Map</h1>
           </div>
 
+          <div>{JSON.stringify(user)}</div>
+
           {/* Actions */}
           <div className='flex gap-3'>
             {/* Add Hazard */}
@@ -156,13 +178,7 @@ function App() {
               Add Hazard
             </button>
             {/* Login/Logout */}
-            <button
-              type="button"
-              className="inline-flex items-center rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              <UserCircleIcon className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
-              Login
-            </button>
+            <AuthButton />
           </div>
         </nav>
 
@@ -185,14 +201,7 @@ function App() {
               Add Hazard
             </button>
             {/* Login/Logout */}
-            <button
-              type="button"
-              disabled
-              className="inline-flex items-center rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              <UserCircleIcon className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
-              Login
-            </button>
+            <AuthButton />
           </div>
         </nav>
 
@@ -203,7 +212,7 @@ function App() {
             latitude: lat,
             zoom: 9
           }}
-          onLoad={(event) => loadExtras(event)}
+          onLoad={(event: MapboxEvent) => loadExtras(event)}
           mapStyle="mapbox://styles/mapbox/streets-v9"
           mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
           onMoveEnd={updateMapCenterCoordinates}
@@ -214,7 +223,15 @@ function App() {
           {/* Geojson Layer */}
           {data && (
             <Source id="hazards" type="geojson" data={data.geojson}>
-              <Layer {...layerStyle} />
+              <Layer
+                id='point'
+                type='symbol'
+                source="pin"
+                layout={{
+                  'icon-image': 'flood-pin',
+                  'icon-size': 0.75
+                }}
+              />
             </Source>
           )}
 
@@ -240,7 +257,7 @@ function App() {
                   name="hazard-type"
                   className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
                   defaultValue="Flooded Road"
-                  onChange={(e: ChangeEvent) => selectHazardType(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLSelectElement>) => selectHazardType(e.target.value)}
                 >
                   {hazardOptions.map(option => <option key={option}>{option}</option>)}
                 </select>
