@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -34,16 +35,64 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
-module.exports.getHazards = function (event) { return __awaiter(_this, void 0, void 0, function () {
+Object.defineProperty(exports, "__esModule", { value: true });
+var client_1 = require("@prisma/client");
+var prisma = new client_1.PrismaClient();
+module.exports.get = function (event) { return __awaiter(void 0, void 0, void 0, function () {
+    var hazards, features;
     return __generator(this, function (_a) {
-        return [2 /*return*/, {
-                statusCode: 200,
-                body: JSON.stringify({
-                    message: "Go Serverless v3.0! Your function executed successfully!",
-                    input: event,
-                }, null, 2),
-            }];
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, prisma.hazard.findMany()];
+            case 1:
+                hazards = _a.sent();
+                features = hazards.map(function (hazard) { return ({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [hazard.lng.toNumber(), hazard.lat.toNumber()]
+                    },
+                    properties: {
+                        createdAt: hazard.createdAt,
+                        updatedAt: hazard.updatedAt
+                    }
+                }); });
+                return [2 /*return*/, {
+                        statusCode: 200,
+                        body: JSON.stringify({
+                            geojson: {
+                                type: 'FeatureCollection',
+                                features: features
+                            }
+                        }),
+                    }];
+        }
+    });
+}); };
+// TODO: Get image from request
+// TODO: Upload image to s3, get the URI
+// TODO: Create db record
+module.exports.create = function (event) { return __awaiter(void 0, void 0, void 0, function () {
+    var body, hazard;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                body = JSON.parse(event.body);
+                return [4 /*yield*/, prisma.hazard.create({
+                        data: {
+                            userId: 'gday@danferg.com',
+                            lat: body.lat,
+                            lng: body.lng,
+                        }
+                    })];
+            case 1:
+                hazard = _a.sent();
+                return [2 /*return*/, {
+                        statusCode: 200,
+                        body: JSON.stringify({
+                            hazard: hazard
+                        }),
+                    }];
+        }
     });
 }); };
 //# sourceMappingURL=handler.js.map

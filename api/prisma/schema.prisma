@@ -1,0 +1,17 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Hazard {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  lat       Decimal  @db.Decimal(11, 8)
+  lng       Decimal  @db.Decimal(11, 8)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
