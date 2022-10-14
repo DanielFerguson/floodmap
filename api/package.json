@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "serverless-offline": "^11.1.2",
+    "serverless-plugin-typescript": "^2.1.4",
+    "typescript": "^4.8.4"
+  }
+}

@@ -1,7 +1,11 @@
 org: danielferguson
 app: floodmap
 service: api
-frameworkVersion: '3'
+frameworkVersion: "3"
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
 
 provider:
   name: aws
@@ -9,8 +13,8 @@ provider:
 
 functions:
   hello:
-    handler: handler.hello
+    handler: handler.getHazards
     events:
       - httpApi:
-          path: /
+          path: /api/hazards
           method: get
