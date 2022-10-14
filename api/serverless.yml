@@ -7,14 +7,29 @@ plugins:
   - serverless-plugin-typescript
   - serverless-offline
 
+custom:
+  bucket: ${self:service}-hazard-images
+
 provider:
   name: aws
   runtime: nodejs14.x
+  region: ap-southeast-2
+  memorySize: 512
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:PutObjectAcl
+          Resource: "arn:aws:s3:::${self:custom.bucket}/*"
 
 functions:
-  hello:
-    handler: handler.getHazards
+  getHazards:
+    handler: handler.get
     events:
-      - httpApi:
-          path: /api/hazards
-          method: get
+      - httpApi: "GET /api/hazards"
+  createHazard:
+    handler: handler.create
+    events:
+      - httpApi: "POST /api/hazards"
