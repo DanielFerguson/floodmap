@@ -1,15 +1,10 @@
 @tailwind base;
 @tailwind components;
 
-.mapboxgl-map {
-    width: 100vw !important;
-    height: 100vh !important;
-}
-
-@tailwind utilities;
-
 @supports (-webkit-touch-callout: none) {
     .h-screen {
         height: -webkit-fill-available;
     }
 }
+
+@tailwind utilities;

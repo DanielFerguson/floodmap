@@ -259,7 +259,7 @@ function App() {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <nav className='sm:hidden z-20 flex justify-between absolute bottom-0 right-0 left-0 mx-6 mb-10 rounded px-6 py-4 bg-white shadow-lg'>
+          <nav className='sm:hidden z-20 flex justify-between absolute bottom-0 right-0 left-0 mx-6 mb-6 rounded px-6 py-4 bg-white shadow-lg'>
             {/* Branding */}
             <div className='flex items-center gap-3'>
               <img src="/favicon.svg" alt="Flood map icon" className='h-6 w-auto' />
@@ -284,109 +284,115 @@ function App() {
         </Transition>
 
         {/* Map */}
-        <Map
-          initialViewState={{
-            longitude: lng,
-            latitude: lat,
-            zoom: 4
-          }}
-          onLoad={(event: MapboxEvent) => loadExtras(event)}
-          mapStyle="mapbox://styles/mapbox/streets-v9"
-          mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
-          onMove={updateMapCenterCoordinates}
-        >
-          <GeolocateControl />
-          <NavigationControl />
-
-          {/* Geojson Layer */}
-          {data && data.geojson.features.length > 0 && (
-            <Source id="hazards" type="geojson" data={data.geojson}>
-              <Layer {...symbolLayer} />
-              <Layer {...heatmapLayer} />
-            </Source>
-          )}
-
-          {/* Marker */}
-          {drawPoint && <Marker longitude={lng} latitude={lat} anchor="bottom" draggable={true}>
-            {hazardType.value === 'TREE_DOWN' ? <img src="/warning-pin.svg" className='h-12' /> : <img src="/flood-pin.svg" className='h-12' />}
-          </Marker>}
-
-          {/* Submit Hazard Form */}
-          <Transition
-            show={drawPoint}
-            enter="transition-opacity duration-75"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition-opacity duration-150"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+        <div className="h-screen w-screen relative">
+          <Map
+            initialViewState={{
+              longitude: lng,
+              latitude: lat,
+              zoom: 4
+            }}
+            style={{
+              height: '100vh',
+              width: '100vw'
+            }}
+            onLoad={(event: MapboxEvent) => loadExtras(event)}
+            mapStyle="mapbox://styles/mapbox/streets-v9"
+            mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
+            onMove={updateMapCenterCoordinates}
           >
-            <form
-              action='#'
-              onSubmit={(e) => submitHazardForm(e)}
-              method='POST'
-              className="absolute bottom-0 right-0 left-0 max-w-xs mx-auto w-full m-8 px-6 py-4 mb-10 z-20 bg-white rounded-lg shadow flex flex-col gap-4"
+            <GeolocateControl />
+            <NavigationControl />
+
+            {/* Geojson Layer */}
+            {data && data.geojson.features.length > 0 && (
+              <Source id="hazards" type="geojson" data={data.geojson}>
+                <Layer {...symbolLayer} />
+                <Layer {...heatmapLayer} />
+              </Source>
+            )}
+
+            {/* Marker */}
+            {drawPoint && <Marker longitude={lng} latitude={lat} anchor="bottom" draggable={true}>
+              {hazardType.value === 'TREE_DOWN' ? <img src="/warning-pin.svg" className='h-12' /> : <img src="/flood-pin.svg" className='h-12' />}
+            </Marker>}
+
+            {/* Submit Hazard Form */}
+            <Transition
+              show={drawPoint}
+              enter="transition-opacity duration-75"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="transition-opacity duration-150"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
             >
+              <form
+                action='#'
+                onSubmit={(e) => submitHazardForm(e)}
+                method='POST'
+                className="absolute bottom-0 right-0 left-0 max-w-xs mx-auto w-full m-8 px-6 mb-6 py-4 z-20 bg-white rounded-lg shadow flex flex-col gap-4"
+              >
 
-              {/* Hazard Type */}
-              <div>
-                <label htmlFor="hazard-type" className="block text-sm font-medium text-gray-700">
-                  Hazard Type
-                </label>
-                <select
-                  id="hazard-type"
-                  name="hazard-type"
-                  className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-                  defaultValue="Flooded Road"
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => handleHazardOptionSelected(e.target.value)}
-                >
-                  {hazardOptions.map(option => <option value={option.value} key={option.value}>{option.label}</option>)}
-                </select>
-              </div>
-
-              {/* Notes; for Other Hazard Type */}
-              {hazardType.value === "OTHER" && (
+                {/* Hazard Type */}
                 <div>
-                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-                    Notes
+                  <label htmlFor="hazard-type" className="block text-sm font-medium text-gray-700">
+                    Hazard Type
                   </label>
-                  <div className="mt-1">
-                    <textarea
-                      rows={4}
-                      placeholder="Any notes that may be helpful to identify the hazard... optional."
-                      name="notes"
-                      id="notes"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                      defaultValue={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                    />
-                  </div>
+                  <select
+                    id="hazard-type"
+                    name="hazard-type"
+                    className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                    defaultValue="Flooded Road"
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => handleHazardOptionSelected(e.target.value)}
+                  >
+                    {hazardOptions.map(option => <option value={option.value} key={option.value}>{option.label}</option>)}
+                  </select>
                 </div>
-              )}
 
-              {/* Actions */}
-              <div className="w-full flex justify-end gap-3">
-                {/* Reset */}
-                <button
-                  type="button"
-                  onClick={() => resetHazardForm()}
-                  className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  Reset
-                </button>
-                {/* Create */}
-                <button
-                  type="submit"
-                  className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-                  Create
-                </button>
-              </div>
+                {/* Notes; for Other Hazard Type */}
+                {hazardType.value === "OTHER" && (
+                  <div>
+                    <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+                      Notes
+                    </label>
+                    <div className="mt-1">
+                      <textarea
+                        rows={4}
+                        placeholder="Any notes that may be helpful to identify the hazard... optional."
+                        name="notes"
+                        id="notes"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        defaultValue={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
 
-            </form>
-          </Transition>
-        </Map>
+                {/* Actions */}
+                <div className="w-full flex justify-end gap-3">
+                  {/* Reset */}
+                  <button
+                    type="button"
+                    onClick={() => resetHazardForm()}
+                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    Reset
+                  </button>
+                  {/* Create */}
+                  <button
+                    type="submit"
+                    className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+                    Create
+                  </button>
+                </div>
+
+              </form>
+            </Transition>
+          </Map>
+        </div>
       </main>
     </div>
   )
