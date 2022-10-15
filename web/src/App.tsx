@@ -1,10 +1,9 @@
-import { useState, ChangeEvent, FormEvent } from 'react';
+import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import Map, { GeolocateControl, NavigationControl, Source, Layer, Marker, ViewStateChangeEvent, MapboxEvent } from 'react-map-gl';
 import { PencilIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import useSWR from 'swr'
 import toast, { Toaster } from 'react-hot-toast';
-import type { GeoJSON } from 'geojson';
-import mapboxgl, { MapMouseEvent } from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
 import * as dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useAuth0 } from "@auth0/auth0-react";
@@ -17,11 +16,16 @@ const hazardOptions = [
   "Other",
 ];
 
-const fetcher = (url: string) => fetch(`http://localhost:3000${url}`).then(res => res.json());
+const API_URL = import.meta.env.VITE_API_URL;
 
-const SaveHazard = (lat: number, lng: number, hazardType: string): Promise<Response> => {
-  return fetch('http://localhost:3000/api/hazards', {
+const fetcher = (url: string) => fetch(`${API_URL}${url}`).then(res => res.json());
+
+const SaveHazard = (lat: number, lng: number, hazardType: string, token: string): Promise<Response> => {
+  return fetch(`${API_URL}/hazards`, {
     method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
     body: JSON.stringify({ lat, lng, hazardType })
   })
 }
@@ -59,9 +63,28 @@ function App() {
   const [lng, setLng] = useState<number>(143.8503);
   const [lat, setLat] = useState<number>(-37.5622);
   const [hazardType, selectHazardType] = useState<string>(hazardOptions[0]);
-  const { user, isAuthenticated } = useAuth0();
+  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  const { data } = useSWR('/api/hazards', fetcher);
+  const { data } = useSWR('/hazards', fetcher);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const getUserAccessToken = async () => {
+      try {
+        const accessToken = await getAccessTokenSilently({
+          audience: `https://danferg.au.auth0.com/api/v2/`,
+        });
+
+        setAccessToken(accessToken);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
+    getUserAccessToken();
+  }, [getAccessTokenSilently, user?.sub]);
 
   const updateMapCenterCoordinates = (event: ViewStateChangeEvent): void => {
     setLat(event.viewState.latitude);
@@ -75,8 +98,13 @@ function App() {
   const submitHazardForm = (event: FormEvent): void => {
     event.preventDefault();
 
+    if (accessToken === null) {
+      toast.error("Login to add hazards.")
+      return;
+    }
+
     toast.promise(
-      SaveHazard(lat, lng, hazardType),
+      SaveHazard(lat, lng, hazardType, accessToken),
       {
         loading: 'Loading...',
         success: () => `Successfully saved hazard.`,
@@ -161,8 +189,6 @@ function App() {
             <img src="/favicon.svg" alt="Flood map icon" className='h-6 w-auto' />
             <h1 className='font-permanent'>Flood Map</h1>
           </div>
-
-          <div>{JSON.stringify(user)}</div>
 
           {/* Actions */}
           <div className='flex gap-3'>
