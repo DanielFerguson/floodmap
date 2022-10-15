@@ -9,6 +9,9 @@ jobs:
   deploy:
     name: deploy
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api
     steps:
       - name: Checkout projcet
         uses: actions/checkout@v3
@@ -17,9 +20,7 @@ jobs:
         with:
           node-version: 16
       - name: Install node packages
-        run: |
-          cd api
-          npm ci
+        run: npm ci
       - name: serverless deploy
         uses: serverless/github-action@v3.1
         with:
