@@ -8,11 +8,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum HazardType {
+  TREE_DOWN
+  FLOODED_ROAD
+  OTHER
+}
+
 model Hazard {
-  id        Int      @id @default(autoincrement())
-  userId    String
-  lat       Decimal  @db.Decimal(11, 8)
-  lng       Decimal  @db.Decimal(11, 8)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  userId     String
+  lat        Decimal  @db.Decimal(11, 8)
+  lng        Decimal  @db.Decimal(11, 8)
+  hazardType String
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

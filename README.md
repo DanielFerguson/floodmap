@@ -18,7 +18,7 @@ Users are able too...
 
 - [x] quickly navigate to the users location,
 - [x] view a map of flooded roads and points,
-- [ ] submit a flooded or hazardoud point on the map,
+- [x] submit a flooded or hazardoud point on the map,
 - [ ] submit a flooded or hazardoud road,
 - [ ] submit a flooded or hazardoud section of road,
 - [ ] add an optional image to a hazard submission,
@@ -26,6 +26,6 @@ Users are able too...
 ## Technology
 
 - Frontend: ViteJS w/ React & TypeScript
-- API: ?
+- API: Serverless, TypeScript, Prisma
 - Hosting: Vercel & AWS
 - Authentication: Auth0

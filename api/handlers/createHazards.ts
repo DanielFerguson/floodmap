@@ -58,9 +58,11 @@ module.exports.handler = async (event) => {
 
     const hazard = await prisma.hazard.create({
         data: {
-            userId: 'gday@danferg.com',
+            userId: decoded.sub,
             lat: responseBody.lat,
             lng: responseBody.lng,
+            hazardType: responseBody.hazardType,
+            notes: responseBody.notes === "" ? null : responseBody.notes
         }
     })
 

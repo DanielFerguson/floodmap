@@ -12,6 +12,7 @@ module.exports.handler = async (event) => {
             coordinates: [hazard.lng.toNumber(), hazard.lat.toNumber()]
         },
         properties: {
+            hazardType: hazard.hazardType,
             createdAt: hazard.createdAt,
             updatedAt: hazard.updatedAt
         }
