@@ -27,17 +27,26 @@ async function main() {
     let minY = 143.774027;
     let maxY = 143.930067;
 
-    for (let index = 0; index < 50; index++) {
+    let hazards: Hazard[] = [];
+
+    for (let index = 1; index < 5000; index++) {
         let point = generateRandomPoint(minX, minY, maxX, maxY);
 
-        await prisma.hazard.create({
-            data: {
-                userId: 'gday@danferg.com',
-                lat: new Prisma.Decimal(point.lat),
-                lng: new Prisma.Decimal(point.lng),
-            }
+        hazards.push({
+            userId: 'gday@danferg.com',
+            lat: new Prisma.Decimal(point.lat),
+            lng: new Prisma.Decimal(point.lng),
+            hazardType: 'FLOODED_ROAD',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            id: index,
+            notes: ''
         });
     }
+
+    await prisma.hazard.createMany({
+        data: hazards
+    });
 }
 
 main()

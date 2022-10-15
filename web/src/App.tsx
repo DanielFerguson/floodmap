@@ -5,6 +5,12 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useAuth0 } from "@auth0/auth0-react";
 import useSWR, { useSWRConfig } from 'swr'
 import { Transition } from '@headlessui/react'
+import mapboxgl from 'mapbox-gl';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime'
+import { startCase } from 'lodash';
+
+dayjs.extend(relativeTime);
 
 interface Option {
   value: string,
@@ -54,7 +60,6 @@ const symbolLayer: SymbolLayer = {
   source: "pin",
   minzoom: 4,
   layout: {
-    // 'icon-image': 'flood-pin',
     'icon-image': [
       'match',
       ['get', 'hazardType'],
@@ -220,6 +225,44 @@ function App() {
       if (error || image === undefined) throw error;
       map.addImage('warning-pin', image);
     })
+
+    // When a click event occurs on a feature in the places layer, open a popup at the
+    // location of the feature, with description HTML from its properties.
+    map.on('click', 'point', (e) => {
+      // Copy coordinates array.
+      // @ts-ignore
+      const coordinates = e.features[0].geometry.coordinates.slice();
+      // @ts-ignore
+      const description = e.features[0].properties.description;
+
+      // Ensure that if the map is zoomed out such that multiple
+      // copies of the feature are visible, the popup appears
+      // over the copy being pointed to.
+      while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+      }
+
+      // @ts-ignore
+      const type = startCase(e.features[0].properties.hazardType.toLowerCase());
+
+      new mapboxgl.Popup({
+        closeButton: false
+      })
+        .setLngLat(coordinates)
+        // @ts-ignore
+        .setHTML(`<p>${type}</p><p>Created ${dayjs().to(e.features[0].properties.createdAt)}.</p>`)
+        .addTo(map);
+    });
+
+    // Change the cursor to a pointer when the mouse is over the point layer.
+    map.on('mouseenter', 'point', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+
+    // Change it back to a pointer when it leaves.
+    map.on('mouseleave', 'point', () => {
+      map.getCanvas().style.cursor = '';
+    });
   }
 
   return (
@@ -280,8 +323,8 @@ function App() {
         {/* Geojson Layer */}
         {data && data.geojson.features.length > 0 && (
           <Source id="hazards" type="geojson" data={data.geojson}>
-            <Layer {...symbolLayer} />
             <Layer {...heatmapLayer} />
+            <Layer {...symbolLayer} />
           </Source>
         )}
 
