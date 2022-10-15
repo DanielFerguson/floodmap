@@ -1,9 +1,8 @@
 import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
-import Map, { GeolocateControl, NavigationControl, Source, Layer, Marker, ViewStateChangeEvent, MapboxEvent } from 'react-map-gl';
+import Map, { GeolocateControl, NavigationControl, Popup, Source, Layer, Marker, ViewStateChangeEvent, MapboxEvent, MapboxGeoJSONFeature } from 'react-map-gl';
 import { PencilIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import useSWR from 'swr'
 import toast, { Toaster } from 'react-hot-toast';
-import mapboxgl from 'mapbox-gl';
 import * as dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useAuth0 } from "@auth0/auth0-react";
@@ -65,6 +64,7 @@ function App() {
   const [hazardType, selectHazardType] = useState<string>(hazardOptions[0]);
   const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [hoveredMarker, setHoveredMarker] = useState<MapboxGeoJSONFeature | null>(null);
 
   const { data } = useSWR('/hazards', fetcher);
 
@@ -127,12 +127,6 @@ function App() {
   const loadExtras = (event: MapboxEvent): void => {
     const map = event.target;
 
-    // Create a popup, but don't add it to the map yet.
-    const popup = new mapboxgl.Popup({
-      closeButton: false,
-      closeOnClick: false
-    });
-
     map.on('mouseenter', 'point', (e) => {
       map.getCanvas().style.cursor = 'pointer';
 
@@ -141,10 +135,6 @@ function App() {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const coordinates = e.features[0].geometry.coordinates.slice();
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const createdAt = e.features[0].properties.createdAt;
 
       // Ensure that if the map is zoomed out such that multiple
       // copies of the feature are visible, the popup appears
@@ -155,15 +145,12 @@ function App() {
 
       // Populate the popup and set its coordinates
       // based on the feature found.
-      popup
-        .setLngLat(coordinates)
-        .setHTML(`<p>Created ${dayjs(createdAt).fromNow()}.</p>`)
-        .addTo(map);
+      setHoveredMarker(e.features[0]);
     })
 
     map.on('mouseleave', 'point', () => {
       map.getCanvas().style.cursor = '';
-      popup.remove();
+      setHoveredMarker(null);
     });
 
     map.loadImage('/flood-pin.png', (error, image) => {
@@ -263,6 +250,16 @@ function App() {
 
           {/* Marker */}
           {drawPoint && <Marker longitude={lng} latitude={lat} anchor="bottom" draggable={true} />}
+
+          {/* Popup */}
+          {hoveredMarker && (
+            <Popup
+              closeButton={false}
+              longitude={hoveredMarker.geometry.coordinates[0]}
+              latitude={hoveredMarker.geometry.coordinates[1]}
+              anchor="bottom">
+              Created {dayjs().to(hoveredMarker.properties.createdAt)}
+            </Popup>)}
 
           {/* Submit Hazard Form */}
           {drawPoint && (
