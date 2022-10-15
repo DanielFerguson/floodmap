@@ -2,8 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-@supports (-webkit-touch-callout: none) {
-    .h-screen {
-        height: -webkit-fill-available;
-    }
+body.noscroll {
+    height: 100%;
+    overflow: hidden;
+    /* make sure iOS does not try to scroll the body first */
+}
+
+.mapboxgl-map {
+    min-height: 100vh;
+    /* this is the magic, actually bug abusing iOS here */
 }
