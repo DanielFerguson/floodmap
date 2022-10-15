@@ -1,6 +1,8 @@
 # floodmap.app
 
-[Website](https://floodmap.app)
+![Flood Map](https://github.com/DanielFerguson/floodmap.app/blob/main/assets/pins.png?raw=true)
+
+[![Deploy Serverless API](https://github.com/DanielFerguson/floodmap.app/actions/workflows/ci.yml/badge.svg)](https://github.com/DanielFerguson/floodmap.app/actions/workflows/ci.yml)
 
 FloodMap is a community-powered solution to help make navigating floods safer, together.
 
@@ -10,7 +12,7 @@ This data could be used in a variety of ways; like to help...
 
 - people plan their travel routes accordingly,
 - government and councils to identify people cut off from necessary infrastructure, and
-- much more...
+- so much more... (to come later, when I think of it)
 
 ## Features
 
@@ -25,7 +27,11 @@ Users are able too...
 
 ## Technology
 
-- Frontend: ViteJS w/ React & TypeScript
-- API: Serverless, TypeScript, Prisma
-- Hosting: Vercel & AWS
-- Authentication: Auth0
+- Frontend: [ViteJS](https://vitejs.dev/) w/ [React](https://reactjs.org/) & [TypeScript](https://www.typescriptlang.org/)
+- API: [Serverless](https://www.serverless.com/), [TypeScript](https://www.typescriptlang.org/), [Prisma](https://www.prisma.io/)
+- Hosting: [Vercel](https://vercel.com/) & [AWS](https://aws.amazon.com/)
+- Authentication: [Auth0](https://auth0.com/)
+
+## Contributors
+
+- Dan Ferguson <gday@danferg.com>
