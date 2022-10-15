@@ -252,10 +252,12 @@ function App() {
           {drawPoint && <Marker longitude={lng} latitude={lat} anchor="bottom" draggable={true} />}
 
           {/* Popup */}
-          {hoveredMarker && (
+          {hoveredMarker && hoveredMarker.properties && (
             <Popup
               closeButton={false}
+              // @ts-ignore
               longitude={hoveredMarker.geometry.coordinates[0]}
+              // @ts-ignore
               latitude={hoveredMarker.geometry.coordinates[1]}
               anchor="bottom">
               Created {dayjs().to(hoveredMarker.properties.createdAt)}
