@@ -17,13 +17,15 @@ const hazardOptions: Option[] = [
   { value: "OTHER", label: "Other" },
 ];
 
+const MAX_HEATMAP_LEVEL = 9;
+
 const heatmapLayer: HeatmapLayer = {
   id: 'heatmap',
-  maxzoom: 9,
+  maxzoom: MAX_HEATMAP_LEVEL,
   type: 'heatmap',
   paint: {
     'heatmap-weight': ['interpolate', ['linear'], ['get', 'mag'], 0, 0, 6, 1],
-    'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 1, 9, 3],
+    'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 1, MAX_HEATMAP_LEVEL, 3],
     'heatmap-color': [
       'interpolate',
       ['linear'],
@@ -41,8 +43,8 @@ const heatmapLayer: HeatmapLayer = {
       0.9,
       'rgb(255,201,101)'
     ],
-    'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 2, 9, 20],
-    'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 7, 1, 9, 0]
+    'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 2, MAX_HEATMAP_LEVEL, 20],
+    'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 7, 1, MAX_HEATMAP_LEVEL, 0]
   }
 };
 
@@ -77,7 +79,7 @@ const SaveHazard = (lat: number, lng: number, hazardType: string, notes: string 
       Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({ lat, lng, hazardType, notes })
-  })
+  }).then(res => res.json())
 }
 
 const AuthButton = () => {
@@ -174,25 +176,31 @@ function App() {
       return;
     }
 
-    toast.promise(
-      SaveHazard(lat, lng, hazardType.value, notes, accessToken),
-      {
-        loading: 'Loading...',
-        success: () => `Successfully saved hazard.`,
-        error: () => `Whoops! An error just occured...`,
-      },
-      {
-        style: {
-          minWidth: '250px',
+    mutate('/hazards', async () => {
+      const newHazard = await toast.promise(
+        SaveHazard(lat, lng, hazardType.value, notes, accessToken),
+        {
+          loading: 'Loading...',
+          success: () => `Successfully saved hazard.`,
+          error: () => `Whoops! An error just occured...`,
         },
-        success: {
-          duration: 5000,
-          icon: '✅',
-        },
-      }
-    );
+        {
+          style: {
+            minWidth: '250px',
+          },
+          success: {
+            duration: 5000,
+            icon: '✅',
+          },
+        }
+      );
 
-    mutate('/hazards');
+      return {
+        type: data.type,
+        features: [...data.features, newHazard]
+      };
+    }, { revalidate: true });
+
     resetHazardForm();
   }
 
