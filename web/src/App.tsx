@@ -4,6 +4,7 @@ import { PencilIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outlin
 import toast, { Toaster } from 'react-hot-toast';
 import { useAuth0 } from "@auth0/auth0-react";
 import useSWR, { useSWRConfig } from 'swr'
+import { Transition } from '@headlessui/react'
 
 interface Option {
   value: string,
@@ -156,6 +157,15 @@ function App() {
     setDrawPoint(false);
   }
 
+  const toggleDrawPoint = (): void => {
+    if (!isAuthenticated) {
+      toast.error("Login to add a hazard.");
+      return;
+    }
+
+    setDrawPoint(!drawPoint);
+  }
+
   const submitHazardForm = (event: FormEvent): void => {
     event.preventDefault();
 
@@ -218,7 +228,7 @@ function App() {
             {/* Add Hazard */}
             <button
               type="button"
-              onClick={() => setDrawPoint(!drawPoint)}
+              onClick={() => toggleDrawPoint()}
               className={
                 `inline-flex items-center rounded-md border px-2.5 py-1.5 text-xs font-medium leading-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${drawPoint ? 'border-transparent bg-blue-600 text-white hover:bg-blue-700' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'}`
               }
@@ -232,26 +242,38 @@ function App() {
         </nav>
 
         {/* Mobile Toolbar */}
-        <nav className='sm:hidden z-20 flex justify-between absolute bottom-0 right-0 left-0 mx-6 mb-10 rounded px-6 py-4 bg-white shadow-lg'>
-          {/* Branding */}
-          <div className='flex items-center gap-3'>
-            <img src="/favicon.svg" alt="Flood map icon" className='h-6 w-auto' />
-          </div>
+        <Transition
+          show={!drawPoint}
+          enter="transition-opacity duration-150"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="transition-opacity duration-75"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <nav className='sm:hidden z-20 flex justify-between absolute bottom-0 right-0 left-0 mx-6 mb-10 rounded px-6 py-4 bg-white shadow-lg'>
+            {/* Branding */}
+            <div className='flex items-center gap-3'>
+              <img src="/favicon.svg" alt="Flood map icon" className='h-6 w-auto' />
+            </div>
 
-          {/* Actions */}
-          <div className='flex gap-3'>
-            <button
-              type="button"
-              disabled
-              className="inline-flex items-center rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              <PencilIcon className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
-              Add Hazard
-            </button>
-            {/* Login/Logout */}
-            <AuthButton />
-          </div>
-        </nav>
+            {/* Actions */}
+            <div className='flex gap-3'>
+              <button
+                type="button"
+                onClick={() => toggleDrawPoint()}
+                className={
+                  `inline-flex items-center rounded-md border px-2.5 py-1.5 text-xs font-medium leading-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${drawPoint ? 'border-transparent bg-blue-600 text-white hover:bg-blue-700' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'}`
+                }
+              >
+                <PencilIcon className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
+                Add Hazard
+              </button>
+              {/* Login/Logout */}
+              <AuthButton />
+            </div>
+          </nav>
+        </Transition>
 
         {/* Map */}
         <Map
@@ -282,12 +304,20 @@ function App() {
           </Marker>}
 
           {/* Submit Hazard Form */}
-          {drawPoint && (
+          <Transition
+            show={drawPoint}
+            enter="transition-opacity duration-75"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="transition-opacity duration-150"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
             <form
               action='#'
               onSubmit={(e) => submitHazardForm(e)}
               method='POST'
-              className="absolute bottom-0 right-0 left-0 max-w-xs mx-auto w-full m-8 px-6 py-4 z-20 bg-white rounded-lg shadow flex flex-col gap-4"
+              className="absolute bottom-0 right-0 left-0 max-w-xs mx-auto w-full m-8 px-6 py-4 mb-10 z-20 bg-white rounded-lg shadow flex flex-col gap-4"
             >
 
               {/* Hazard Type */}
@@ -347,7 +377,7 @@ function App() {
               </div>
 
             </form>
-          )}
+          </Transition>
         </Map>
       </main>
     </div>
