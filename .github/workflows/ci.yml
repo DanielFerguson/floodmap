@@ -13,17 +13,12 @@ jobs:
       run:
         working-directory: api
     steps:
-      - name: Checkout projcet
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       - name: Setup Node v18
         uses: actions/setup-node@v3
         with:
           node-version: 16
-      - name: Install node packages
-        run: npm ci
-      - name: Deploy Serverless project
-        uses: serverless/github-action@v3.1
-        with:
-          args: deploy
-        env:
-          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+      - name: Install Node packages
+        run: |
+          npm ci
+          npm i serverless@3.x
